@@ -1,0 +1,55 @@
+// BadUSB PowerShell Execution via Windows Run Dialog
+// MITRE ATT&CK: T1059.001, T1564.003
+// Source: Flipper Purple Team - github.com/descambiado/flipper-purple-team
+//
+// Detects powershell.exe spawned by explorer.exe with evasion flags typical of
+// HID injection payloads. When a Flipper Zero BadUSB payload uses WIN+R to open
+// the Run dialog, the resulting process has explorer.exe as parent. The combination
+// of -WindowStyle Hidden with any evasion flag is a strong indicator.
+//
+// Requirements:
+//   - DeviceProcessEvents (Microsoft Defender for Endpoint)
+//   OR
+//   - SecurityEvent (Event ID 4688 with process command line auditing enabled)
+//
+// --- Defender for Endpoint (DeviceProcessEvents) ---
+DeviceProcessEvents
+| where FileName =~ "powershell.exe"
+| where InitiatingProcessFileName =~ "explorer.exe"
+| where ProcessCommandLine has_all ("-WindowStyle", "Hidden")
+    and ProcessCommandLine has_any (
+        "-NoProfile",
+        "-NonInteractive",
+        "-EncodedCommand",
+        "-ExecutionPolicy Bypass",
+        "DownloadString",
+        "IEX",
+        "Invoke-Expression",
+        "WebClient",
+        "Start-Process"
+    )
+| project
+    Timestamp,
+    DeviceName,
+    AccountName,
+    AccountDomain,
+    ProcessCommandLine,
+    InitiatingProcessFileName,
+    InitiatingProcessCommandLine,
+    ReportId
+| sort by Timestamp desc
+
+// --- Microsoft Sentinel (SecurityEvent, requires 4688 with cmdline logging) ---
+// Uncomment if using Sentinel without Defender connector:
+//
+// SecurityEvent
+// | where EventID == 4688
+// | where NewProcessName endswith "\\powershell.exe"
+// | where ParentProcessName endswith "\\explorer.exe"
+// | where CommandLine has_all ("-WindowStyle", "Hidden")
+//     and CommandLine has_any (
+//         "-NoProfile", "-EncodedCommand", "DownloadString",
+//         "IEX", "Invoke-Expression", "-ExecutionPolicy Bypass"
+//     )
+// | project TimeGenerated, Computer, Account, CommandLine, ParentProcessName
+// | sort by TimeGenerated desc

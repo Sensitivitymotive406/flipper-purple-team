@@ -1,0 +1,44 @@
+title: BadUSB PowerShell Execution via Windows Run Dialog
+id: 7a3f1c2e-9b4d-4e8a-bc61-2d5f8e3a7c91
+status: test
+description: Detects PowerShell spawned by explorer.exe with HID-injection-specific
+    argument combinations. Flipper Zero BadUSB payloads commonly use WIN+R to open
+    the Run dialog and type a PowerShell command, resulting in powershell.exe with
+    explorer.exe as parent and evasion flags in the command line.
+references:
+    - https://github.com/descambiado/flipper-purple-team
+    - https://attack.mitre.org/techniques/T1059/001/
+author: descambiado
+date: 2026-05-23
+tags:
+    - attack.execution
+    - attack.t1059.001
+    - attack.defense_evasion
+    - attack.t1564.003
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection_process:
+        Image|endswith: '\powershell.exe'
+        ParentImage|endswith: '\explorer.exe'
+    selection_evasion:
+        CommandLine|contains|all:
+            - '-WindowStyle'
+            - 'Hidden'
+    selection_suspicious:
+        CommandLine|contains:
+            - '-NoProfile'
+            - '-NonInteractive'
+            - '-EncodedCommand'
+            - '-ExecutionPolicy Bypass'
+            - 'DownloadString'
+            - 'IEX'
+            - 'Invoke-Expression'
+            - 'WebClient'
+            - 'Start-Process'
+    condition: selection_process and selection_evasion and 1 of selection_suspicious
+falsepositives:
+    - Legitimate software installers that invoke PowerShell through the Windows shell
+    - IT automation tools that use explorer.exe as process parent (uncommon)
+level: high

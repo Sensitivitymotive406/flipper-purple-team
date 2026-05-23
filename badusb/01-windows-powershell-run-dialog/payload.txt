@@ -1,0 +1,20 @@
+REM Title: PowerShell execution via Windows Run dialog
+REM Description: Opens Run dialog and executes a PowerShell command with obfuscation flags
+REM Target OS: Windows 10/11
+REM Flipper Zero: BadUSB app, stock firmware
+REM MITRE ATT&CK: T1059.001 (Command and Scripting Interpreter: PowerShell)
+REM               T1106  (Native API)
+REM               T1204.002 (User Execution: Malicious File) -- social engineering variant
+REM
+REM Purple Team note: this payload generates the exact traces covered by
+REM   sigma/win_badusb_powershell_run_dialog.yml and kql/BadUSBPowerShellRunDialog.kql
+REM   Run on a test machine, then validate both rules fire in your SIEM.
+REM
+REM LEGAL: Only use on machines you own or have written authorization to test.
+
+DELAY 1500
+GUI r
+DELAY 600
+STRING powershell -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -Command "Write-Output 'Purple team test: BadUSB 01 executed on $env:COMPUTERNAME by $env:USERNAME at $(Get-Date -Format u)' | Out-File $env:TEMP\badusb_test.txt"
+DELAY 100
+ENTER

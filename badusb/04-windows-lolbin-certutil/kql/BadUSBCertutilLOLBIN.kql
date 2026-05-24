@@ -1,0 +1,45 @@
+// BadUSB LOLBIN Execution via certutil (Run Dialog)
+// MITRE ATT&CK: T1105, T1027, T1200
+// Source: Flipper Purple Team - github.com/descambiado/flipper-purple-team
+//
+// Detects certutil.exe or cmd.exe spawned by explorer.exe (Run dialog context)
+// with download or decode flags. Unlike generic certutil detections, this rule
+// focuses on the explorer.exe parent which indicates Run dialog execution context
+// consistent with HID injection payloads.
+//
+// Requirements:
+//   - DeviceProcessEvents (Microsoft Defender for Endpoint)
+
+let timeframe = 1d;
+let LolbinFlags = dynamic([
+    "urlcache",
+    "-decode",
+    "-decodehex",
+    "verifyctl"
+]);
+DeviceProcessEvents
+| where TimeGenerated >= ago(timeframe)
+// Direct: certutil.exe spawned by explorer.exe (typed directly in Run dialog)
+| where (
+    FileName =~ "certutil.exe"
+    and InitiatingProcessFileName =~ "explorer.exe"
+    and ProcessCommandLine has_any (LolbinFlags)
+)
+// Via cmd: cmd.exe spawned by explorer.exe with certutil invocation
+or (
+    FileName =~ "cmd.exe"
+    and InitiatingProcessFileName =~ "explorer.exe"
+    and ProcessCommandLine has "certutil"
+    and ProcessCommandLine has_any (LolbinFlags)
+)
+| project
+    TimeGenerated,
+    DeviceName,
+    AccountName,
+    AccountDomain,
+    FileName,
+    ProcessCommandLine,
+    InitiatingProcessFileName,
+    InitiatingProcessCommandLine,
+    ReportId
+| sort by TimeGenerated desc

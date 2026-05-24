@@ -1,0 +1,62 @@
+title: BadUSB LOLBIN Execution via Certutil (HID Injection via Run Dialog)
+id: b427113e-bd97-4b11-9368-734ddb877a00
+status: test
+description: Detects certutil.exe with download or decode flags spawned directly by explorer.exe, or cmd.exe spawned by explorer.exe with certutil in the command line. Both patterns are consistent with HID injection payloads using WIN+R to execute certutil as a living-off-the-land binary. Existing certutil rules cover generic execution; this rule is scoped to the explorer.exe parent indicating Run dialog context.
+references:
+    - https://github.com/descambiado/flipper-purple-team
+    - https://docs.flipper.net/bad-usb
+    - https://lolbas-project.github.io/lolbas/Binaries/Certutil/
+    - https://attack.mitre.org/techniques/T1105/
+    - https://attack.mitre.org/techniques/T1027/
+related:
+    - id: 19b08b1c-861d-4e75-a1ef-ea0c1baf202b
+      type: similar
+    - id: cc9cbe82-7bc0-4ef5-bc23-bbfb83947be7
+      type: similar
+author: descambiado
+date: 2026-05-24
+tags:
+    - attack.execution
+    - attack.t1105
+    - attack.t1027
+    - attack.initial_access
+    - attack.t1200
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    # Pattern A: certutil.exe spawned directly by explorer.exe
+    selection_certutil_img:
+        - Image|endswith: '\certutil.exe'
+        - OriginalFileName: 'CertUtil.exe'
+    selection_certutil_parent:
+        ParentImage|endswith: '\explorer.exe'
+    selection_certutil_flags:
+        CommandLine|contains:
+            - 'urlcache'
+            - '-decode'
+            - '-decodehex'
+            - 'verifyctl'
+    # Pattern B: cmd.exe spawned by explorer.exe invoking certutil
+    selection_cmd_img:
+        Image|endswith: '\cmd.exe'
+    selection_cmd_parent:
+        ParentImage|endswith: '\explorer.exe'
+    selection_cmd_certutil:
+        CommandLine|contains: 'certutil'
+    selection_cmd_flags:
+        CommandLine|contains:
+            - 'urlcache'
+            - '-decode'
+            - '-decodehex'
+            - 'verifyctl'
+    filter_main_installers:
+        ParentCommandLine|contains:
+            - 'setup'
+            - 'install'
+            - 'Update'
+    condition: ((selection_certutil_img and selection_certutil_parent and selection_certutil_flags) or (selection_cmd_img and selection_cmd_parent and selection_cmd_certutil and selection_cmd_flags)) and not filter_main_installers
+falsepositives:
+    - Legitimate administrative use of certutil launched from the Run dialog
+    - Software installers that invoke cmd.exe via explorer.exe with certutil for certificate operations
+level: high

